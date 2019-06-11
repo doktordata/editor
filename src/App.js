@@ -1,101 +1,80 @@
-import React, { useState } from "react"
-import styled, { createGlobalStyle } from "styled-components"
-import { Editor } from "slate-react"
-import { Value } from "slate"
-import initialValue from "./model/value.json"
+import React, { useState } from "react";
+import styled, { createGlobalStyle } from "styled-components";
+import { Editor } from "slate-react";
+import { Value } from "slate";
+import { MarkHotKey } from "./plugins";
+import { ParagraphNode, CodeNode } from "./blocks";
+import { BoldMark } from "./marks";
+import initialValue from "./model/value.json";
 
 const GlobalStyle = createGlobalStyle`
   body {
     margin: 0;
-    padding: 0;
-    font-family: sans-serif;
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 1.125rem;
+    line-height: 1.5;
   }
 
   * {
     box-sizing: border-box;
   }
-`
+`;
 
 const Container = styled.div`
-  padding: 24px;
-`
+  margin: auto;
+  max-width: 70ch;
+`;
 
 const StyledEditor = styled(Editor)`
   width: 100%;
   height: 100vh;
-`
+  padding: 1.5rem;
+`;
 
-const CodeNode = props => (
-  <pre {...props.attributes}>
-    <code>{props.children}</code>
-  </pre>
-)
-const ParagraphNode = props => <p {...props.attributes}>{props.children}</p>
-const BoldMark = props => <strong>{props.children}</strong>
+const plugins = [MarkHotKey({ key: "b", type: "bold" })];
 
 function App() {
-  const [value, setValue] = useState(Value.fromJSON(initialValue))
+  const [value, setValue] = useState(Value.fromJSON(initialValue));
 
   const onChange = ({ value }) => {
-    setValue(value)
-  }
-
-  const onKeyDown = (event, editor, next) => {
-    if (!event.ctrlKey) return next()
-
-    switch (event.key) {
-      case "b": {
-        event.preventDefault()
-        editor.toggleMark("bold")
-        break
-      }
-      case "'": {
-        const isCode = editor.value.blocks.some(block => block.type === "code")
-        event.preventDefault()
-        editor.setBlocks(isCode ? "paragraph" : "code")
-        break
-      }
-      default: {
-        return next()
-      }
-    }
-  }
+    setValue(value);
+  };
 
   const renderBlock = (props, editor, next) => {
     switch (props.node.type) {
       case "code":
-        return <CodeNode {...props} />
+        return <CodeNode {...props} />;
       case "paragraph":
-        return <ParagraphNode {...props} />
+        return <ParagraphNode {...props} />;
       default:
-        return next()
+        return next();
     }
-  }
+  };
 
   const renderMark = (props, editor, next) => {
     switch (props.mark.type) {
       case "bold":
-        return <BoldMark {...props} />
+        return <BoldMark {...props} />;
       default:
-        return next()
+        return next();
     }
-  }
+  };
 
   return (
     <>
       <GlobalStyle />
       <Container>
         <StyledEditor
+          plugins={plugins}
           value={value}
           onChange={onChange}
-          onKeyDown={onKeyDown}
           renderBlock={renderBlock}
           renderMark={renderMark}
           autoFocus
         />
       </Container>
     </>
-  )
+  );
 }
 
-export default App
+export default App;
